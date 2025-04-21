@@ -1,0 +1,48 @@
+.applications-container {
+  padding: 20px;
+  min-height: 70vh;
+}
+
+.applications-content {
+  width: 100%;
+  margin-bottom: 40px;
+}
+
+.applications-table {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.applications-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+.applications-table td, 
+.applications-table th {
+  vertical-align: middle;
+}
+
+.d-flex {
+  display: flex;
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.badge {
+  padding: 8px 12px;
+  font-size: 0.9em;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+
+
+
+
+

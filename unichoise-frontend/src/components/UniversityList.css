@@ -1,0 +1,127 @@
+.university-list-container {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 60px - 50px);
+  background: #f0f4f8;
+  padding-bottom: 20px;
+  overflow-y: auto;
+}
+
+.university-list-content {
+  flex: 1;
+  padding: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.university-list-content h1 {
+  margin-bottom: 20px;
+  color: #6a0dad;
+  font-size: 28px;
+}
+
+.university-list-content button {
+  display: block;
+  margin: 20px auto;
+  padding: 12px 24px;
+  background-color: #6a0dad;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.university-list-content button:hover {
+  background-color: #5a0b9d;
+}
+
+.filters {
+  margin-bottom: 20px;
+}
+
+.filters select,
+.filters input {
+  padding: 10px;
+  margin-right: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.loading-spinner {
+  text-align: center;
+  font-size: 20px;
+  color: #6a0dad;
+  margin: 20px 0;
+}
+
+.error-message {
+  color: red;
+  font-size: 16px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.universities-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.university-item {
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  width: 100%;
+}
+
+.university-item:hover {
+  transform: translateY(-5px);
+}
+
+.university-item:last-child {
+  margin-bottom: 30px;
+}
+
+.university-item h2 {
+  margin: 0;
+  color: #444;
+  font-size: 20px;
+  flex: 1;
+}
+
+.university-item .university-rating {
+  margin-left: 20px;
+  font-size: 16px;
+  color: #6a0dad;
+  font-weight: bold;
+}
+
+.university-item button {
+  padding: 10px 20px;
+  background-color: #6a0dad;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+  margin-left: 20px;
+}
+
+.university-item button:hover {
+  background-color: #5a0b9d;
+}

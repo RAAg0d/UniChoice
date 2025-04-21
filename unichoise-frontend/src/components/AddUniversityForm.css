@@ -1,0 +1,65 @@
+.admin-comment {
+    margin-top: 5px;
+    font-size: 0.8rem;
+    color: #666;
+  }
+  
+  .modal-body {
+    padding: 20px;
+  }
+  
+  .form-group {
+    margin-bottom: 1rem;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
+  
+  .form-control {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+  }
+  
+  textarea.form-control {
+    min-height: 100px;
+  }
+  
+  .modal-footer {
+    justify-content: flex-end;
+    padding: 1rem;
+    border-top: 1px solid #dee2e6;
+  }
+
+  .specialty-card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .specialty-card .card-body {
+    padding: 20px;
+  }
+
+  .specialty-card h5 {
+    color: #6a0dad;
+  }
+
+  .btn-outline-primary {
+    color: #6a0dad;
+    border-color: #6a0dad;
+  }
+
+  .btn-outline-primary:hover {
+    background-color: #6a0dad;
+    border-color: #6a0dad;
+  }
+
+  .btn-outline-danger {
+    padding: 4px 8px;
+    font-size: 14px;
+  }

@@ -1,0 +1,17 @@
+.comment-box {
+  background-color: #f8f9fa;
+  border-left: 4px solid #dc3545;
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 4px;
+}
+
+.comment-box p {
+  margin-bottom: 10px;
+}
+
+.admin-comment {
+  font-style: italic;
+  margin-top: 8px;
+  color: #666;
+}

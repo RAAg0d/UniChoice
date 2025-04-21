@@ -1,0 +1,47 @@
+/* Общие стили для страниц с таблицами */
+.applications-container {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 70px);
+  padding: 20px;
+}
+
+.applications-content {
+  flex: 1;
+}
+
+/* Стили для таблиц */
+.applications-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.applications-table th,
+.applications-table td {
+  padding: 10px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+.applications-table th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+}
+
+.applications-table tr:hover {
+  background-color: #f9f9f9;
+}
+
+.applications-footer {
+  margin-top: auto;
+  padding: 15px 0;
+  text-align: center;
+  background-color: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  color: #666;
+}
+
+.applications-footer p {
+  margin: 0;
+} 

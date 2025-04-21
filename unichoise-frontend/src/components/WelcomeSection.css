@@ -1,0 +1,56 @@
+.welcome-section {
+  margin-bottom: 50px;
+}
+
+.welcome-section h1 {
+  color: #6a0dad;
+  font-size: 2.4rem;
+  margin-bottom: 20px;
+}
+
+.welcome-section p {
+  color: #555;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 15px;
+  max-width: 800px;
+}
+
+@media (max-width: 768px) {
+  .welcome-section h1 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 992px) {
+  .welcome-section h1 {
+    font-size: 2.2rem;
+  }
+}
+
+@media (max-height: 650px) {
+  .welcome-section {
+    margin-bottom: 25px;
+  }
+  
+  .welcome-section h1 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-height: 600px) {
+  .welcome-section {
+    margin-bottom: 15px;
+  }
+  
+  .welcome-section h1 {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+  }
+  
+  .welcome-section p {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    margin-bottom: 8px;
+  }
+} 

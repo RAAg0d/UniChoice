@@ -1,0 +1,71 @@
+.university-applications {
+    padding: 20px;
+  }
+  
+  .university-applications h2 {
+    margin-bottom: 20px;
+  }
+  
+  .table {
+    width: 100%;
+    margin-bottom: 1rem;
+    color: #212529;
+    border-collapse: collapse;
+  }
+  
+  .table th,
+  .table td {
+    padding: 0.75rem;
+    vertical-align: top;
+    border-top: 1px solid #dee2e6;
+  }
+  
+  .table thead th {
+    vertical-align: bottom;
+    border-bottom: 2px solid #dee2e6;
+  }
+  
+  .table tbody + tbody {
+    border-top: 2px solid #dee2e6;
+  }
+  
+  .badge {
+    display: inline-block;
+    padding: 0.25em 0.4em;
+    font-size: 75%;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.25rem;
+  }
+  
+  .badge-success {
+    color: #fff;
+    background-color: #28a745;
+  }
+  
+  .badge-warning {
+    color: #212529;
+    background-color: #ffc107;
+  }
+  
+  .badge-danger {
+    color: #fff;
+    background-color: #dc3545;
+  }
+  
+  .admin-comment {
+    margin-top: 5px;
+    font-size: 0.8rem;
+    color: #666;
+  }
+  
+  .d-flex {
+    display: flex;
+  }
+  
+  .gap-2 {
+    gap: 0.5rem;
+  }

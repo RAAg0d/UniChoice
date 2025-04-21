@@ -1,0 +1,19 @@
+.applications-container {
+  padding: 20px;
+  min-height: 70vh;
+}
+
+.applications-content {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.table th {
+  background-color: #f8f9fa;
+}
+
+.badge {
+  font-size: 0.9em;
+  padding: 8px 12px;
+}

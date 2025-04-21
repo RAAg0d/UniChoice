@@ -1,0 +1,15 @@
+@import './base.css';
+
+@import './components/HomePage.css';
+@import './components/WelcomeSection.css';
+@import './components/QuestionSection.css';
+@import './components/BottomSection.css';
+@import './components/PopularUniversities.css';
+@import './components/FormsCommon.css';
+@import './components/ApplicationsCommonTable.css';
+
+@media (max-height: 600px) {
+  body {
+    font-size: 0.95rem;
+  }
+}

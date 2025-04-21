@@ -1,0 +1,54 @@
+.modal-header {
+    background-color: #6a0dad;
+    color: white;
+  }
+  
+  .modal-body {
+    padding: 1.5rem;
+  }
+  
+  .form-group {
+    margin-bottom: 1.2rem;
+  }
+  
+  .form-group label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+  
+  .form-control {
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    transition: border-color 0.3s;
+  }
+  
+  .form-control:focus {
+    border-color: #6a0dad;
+    box-shadow: 0 0 0 0.25rem rgba(106, 13, 173, 0.25);
+  }
+  
+  .modal-footer {
+    border-top: none;
+    padding: 1rem 1.5rem;
+    justify-content: space-between;
+  }
+  
+  .btn-primary {
+    background-color: #6a0dad;
+    border: none;
+  }
+  
+  .btn-primary:hover {
+    background-color: #5a0b9d;
+  }
+  
+  .btn-secondary {
+    background-color: #6c757d;
+    border: none;
+  }
+  
+  .btn-secondary:hover {
+    background-color: #5a6268;
+  }

@@ -1,0 +1,28 @@
+.applications-container {
+  flex: 1;
+  padding: 20px;
+  width: 100%;
+  min-height: 70vh;
+}
+
+.applications-content {
+  width: 100%;
+  margin-bottom: 40px;
+}
+
+.applications-footer {
+  margin-top: auto;
+  padding: 15px 0;
+  text-align: center;
+  background-color: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  color: #666;
+}
+
+.applications-footer p {
+  margin: 0;
+}
+
+.applications-table {
+  margin-bottom: 30px;
+}
