@@ -2,8 +2,8 @@
 
 # UniChoice
 
-<p align="">
-  <img src="unichoise-frontend/public/banner.png" alt="ZonecoR Banner" width="600"/>
+<p align="left">
+  <img src="unichoise-frontend/public/banner.png" alt="UniChoice Banner" width="500"/>
 </p>
 
 ![Node](https://img.shields.io/badge/Node-18%2B-339933?logo=node.js&logoColor=white)
