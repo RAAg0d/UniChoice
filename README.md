@@ -2,12 +2,9 @@
 
 # UniChoice
 
-<p align="left">
+<p align="center">
   <img src="unichoise-frontend/public/banner.png" alt="UniChoice Banner" width="500"/>
 </p>
-
-![Node](https://img.shields.io/badge/Node-18%2B-339933?logo=node.js&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14%2B-336791?logo=postgresql&logoColor=white)
 
 </div>
 
