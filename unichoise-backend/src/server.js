@@ -1,22 +1,31 @@
+// Core dependencies
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const { Pool } = require('pg');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const pool = require('./db');
-const app = express();
-const PORT = 5000;
-const JWT_SECRET = 'your-secret-key'; 
 
+// App configuration
+const env = require('./config/env');
+const pool = require('./db/pool');
+const { authenticateToken, isAdmin, isRepresentative } = require('./middleware/auth');
+
+// App init & configuration
+const app = express();
+const PORT = env.PORT; // Public API port
+const JWT_SECRET = env.JWT_SECRET; // NOTE: use env secret
+const FRONTEND_ORIGIN = env.FRONTEND_ORIGIN;
+
+// CORS policy — allow frontend dev server
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: FRONTEND_ORIGIN,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 app.use(bodyParser.json());
 
+// Global process-level error handlers (keep server alive and log root causes)
 process.on('uncaughtException', (error) => {
   console.error('Необработанное исключение:', error);
 });
@@ -33,200 +42,16 @@ pool.connect()
     console.error('Ошибка подключения к базе данных:', err);
   });
 
-const authenticateToken = (req, res, next) => {
-  try {
-    const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.split(' ')[1];
+// Auth middlewares are provided by ./middleware/auth
 
-    if (!token) {
-      return res.status(401).json({ message: 'Токен отсутствует' });
-    }
+// Routers
+const authRouter = require('./routes/auth.routes');
+const universitiesRouter = require('./routes/universities.routes');
 
-    const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (error) {
-    console.error('Ошибка верификации токена:', error);
-    return res.status(403).json({ message: 'Неверный токен' });
-  }
-};
+app.use(authRouter);
+app.use('/universities', universitiesRouter);
 
-const isAdmin = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) {
-    return res.status(403).json({ message: 'Токен отсутствует' });
-  }
-
-  try {
-    const decoded = jwt.verify(token, 'your-secret-key');
-    if (decoded.user_type === 'admin') {
-      req.user = decoded;
-      next();
-    } else {
-      res.status(403).json({ message: 'Доступ запрещен' });
-    }
-  } catch (error) {
-    console.error('Ошибка при проверке токена:', error);
-    res.status(403).json({ message: 'Неверный токен' });
-  }
-};
-
-const isRepresentative = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.status(403).json({ message: 'Токен отсутствует' });
-
-  try {
-    const decoded = jwt.verify(token, 'your-secret-key');
-    if (decoded.user_type === 'university_representative') {
-      req.user = decoded;
-      next();
-    } else {
-      res.status(403).json({ message: 'Доступ запрещён' });
-    }
-  } catch (error) {
-    res.status(403).json({ message: 'Неверный токен' });
-  }
-};
-
-app.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    console.log('Login attempt:', { email, password }); 
-
-    const result = await pool.query(
-      'SELECT * FROM users WHERE email = $1',
-      [email]
-    );
-
-    console.log('Database result:', result.rows); 
-
-    if (result.rows.length === 0) {
-      console.log('User not found');
-      return res.status(401).json({ message: 'Неверный email или пароль' });
-    }
-
-    const user = result.rows[0];
-    const validPassword = await bcrypt.compare(password, user.password);
-    console.log('Password validation result:', validPassword);
-
-    if (!validPassword) {
-      console.log('Invalid password');
-      return res.status(401).json({ message: 'Неверный email или пароль' });
-    }
-
-    const token = jwt.sign(
-      {
-        users_id: user.users_id,
-        email: user.email,
-        full_name: user.full_name,
-        user_type: user.user_type
-      },
-      JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    res.json({
-      token,
-      users_id: user.users_id,
-      email: user.email,
-      full_name: user.full_name,
-      user_type: user.user_type
-    });
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ message: 'Ошибка сервера при авторизации' });
-  }
-});
-
-app.post('/register', async (req, res) => {
-  try {
-    const { email, password, full_name, is_representative } = req.body;
-
-    // Валидация входных данных
-    if (!email || !password || !full_name) {
-      return res.status(400).json({ message: 'Все поля обязательны для заполнения' });
-    }
-
-    if (password.length < 6) {
-      return res.status(400).json({ message: 'Пароль должен содержать минимум 6 символов' });
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ message: 'Некорректный формат email' });
-    }
-
-    const userExists = await pool.query(
-      'SELECT * FROM users WHERE email = $1',
-      [email]
-    );
-
-    if (userExists.rows.length > 0) {
-      return res.status(400).json({ message: 'Пользователь с таким email уже существует' });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const result = await pool.query(
-      `INSERT INTO users (email, password, full_name, user_type) 
-       VALUES ($1, $2, $3, $4) 
-       RETURNING users_id, email, full_name, user_type`,
-      [email, hashedPassword, full_name, is_representative ? 'university_representative' : 'user']
-    );
-
-    const user = result.rows[0];
-
-    const token = jwt.sign(
-      {
-        users_id: user.users_id,
-        email: user.email,
-        full_name: user.full_name,
-        user_type: user.user_type
-      },
-      JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    res.status(201).json({
-      token,
-      users_id: user.users_id,
-      email: user.email,
-      full_name: user.full_name,
-      user_type: user.user_type
-    });
-  } catch (error) {
-    console.error('Ошибка при регистрации:', error);
-    res.status(500).json({ message: 'Ошибка сервера при регистрации' });
-  }
-});
-
-// Эндпойнт для выхода (logout)
-app.post('/logout', authenticateToken, async (req, res) => {
-  try {
-    // В реальном приложении здесь можно добавить токен в черный список
-    // Для простоты просто возвращаем успешный ответ
-    res.json({ message: 'Успешный выход из системы' });
-  } catch (error) {
-    console.error('Ошибка при выходе:', error);
-    res.status(500).json({ message: 'Ошибка сервера при выходе' });
-  }
-});
-
-// Эндпойнт для получения информации о текущем пользователе
-app.get('/me', authenticateToken, async (req, res) => {
-  try {
-    res.json({
-      users_id: req.user.users_id,
-      email: req.user.email,
-      full_name: req.user.full_name,
-      user_type: req.user.user_type
-    });
-  } catch (error) {
-    console.error('Ошибка при получении информации о пользователе:', error);
-    res.status(500).json({ message: 'Ошибка сервера' });
-  }
-});
-
+// Universities: list with filters and aggregate stats
 app.get('/universities', async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = 10;
@@ -236,15 +61,39 @@ app.get('/universities', async (req, res) => {
 
   try {
     let query = `
-      SELECT universities.*, 
-             COALESCE(AVG(reviews.rating)::numeric(10, 1), 0) AS average_rating
-      FROM universities
-      LEFT JOIN reviews ON universities.universities_id = reviews.university_id
+      SELECT u.*, 
+             COALESCE(AVG(r.rating)::numeric(10, 1), 0) AS average_rating,
+             -- Общее количество заявлений во все спец-ти вуза
+             COALESCE((
+               SELECT COUNT(*) FROM admission_applications aa
+               JOIN specialties s ON s.specialty_id = aa.specialty_id
+               WHERE s.universities_id = u.universities_id
+             ), 0) AS total_applications,
+             -- Количество заявлений за последние 30 дней
+             COALESCE((
+               SELECT COUNT(*) FROM admission_applications aa
+               JOIN specialties s ON s.specialty_id = aa.specialty_id
+               WHERE s.universities_id = u.universities_id
+                 AND aa.created_at >= NOW() - INTERVAL '30 days'
+             ), 0) AS applications_last_30_days,
+             -- Дни с последней подачи заявления (NULL если не было)
+             (
+               SELECT 
+                 CASE WHEN MAX(aa.created_at) IS NULL 
+                      THEN NULL 
+                      ELSE EXTRACT(DAY FROM (NOW() - MAX(aa.created_at)))::int 
+                 END
+               FROM admission_applications aa
+               JOIN specialties s ON s.specialty_id = aa.specialty_id
+               WHERE s.universities_id = u.universities_id
+             ) AS days_since_last_application
+      FROM universities u
+      LEFT JOIN reviews r ON u.universities_id = r.university_id
     `;
 
     const whereClauses = [];
     if (location) {
-      whereClauses.push(`location ILIKE '%${location}%'`);
+      whereClauses.push(`u.location ILIKE '%${location}%'`);
     }
 
     if (whereClauses.length > 0) {
@@ -252,8 +101,8 @@ app.get('/universities', async (req, res) => {
     }
 
     query += `
-      GROUP BY universities.universities_id
-      HAVING COALESCE(AVG(reviews.rating)::numeric(10, 1), 0) >= ${rating || 0}
+      GROUP BY u.universities_id
+      HAVING COALESCE(AVG(r.rating)::numeric(10, 1), 0) >= ${rating || 0}
       LIMIT $1 OFFSET $2
     `;
 
@@ -261,12 +110,12 @@ app.get('/universities', async (req, res) => {
 
     const totalCountQuery = `
       SELECT COUNT(*) FROM (
-        SELECT universities.universities_id
-        FROM universities
-        LEFT JOIN reviews ON universities.universities_id = reviews.university_id
+        SELECT u.universities_id
+        FROM universities u
+        LEFT JOIN reviews r ON u.universities_id = r.university_id
         ${whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : ''}
-        GROUP BY universities.universities_id
-        HAVING COALESCE(AVG(reviews.rating)::numeric(10, 1), 0) >= ${rating || 0}
+        GROUP BY u.universities_id
+        HAVING COALESCE(AVG(r.rating)::numeric(10, 1), 0) >= ${rating || 0}
       ) AS filtered_universities
     `;
 
@@ -304,7 +153,34 @@ app.get('/universities/:id', async (req, res) => {
 
   try {
     const university = await pool.query(
-      'SELECT * FROM universities WHERE universities_id = $1', 
+      `SELECT 
+         u.*, 
+         COALESCE(AVG(r.rating)::numeric(10,1), 0) AS average_rating,
+         COALESCE((
+           SELECT COUNT(*) FROM admission_applications aa
+           JOIN specialties s ON s.specialty_id = aa.specialty_id
+           WHERE s.universities_id = u.universities_id
+         ), 0) AS total_applications,
+         COALESCE((
+           SELECT COUNT(*) FROM admission_applications aa
+           JOIN specialties s ON s.specialty_id = aa.specialty_id
+           WHERE s.universities_id = u.universities_id
+             AND aa.created_at >= NOW() - INTERVAL '30 days'
+         ), 0) AS applications_last_30_days,
+         (
+           SELECT 
+             CASE WHEN MAX(aa.created_at) IS NULL 
+                  THEN NULL 
+                  ELSE EXTRACT(DAY FROM (NOW() - MAX(aa.created_at)))::int 
+             END
+           FROM admission_applications aa
+           JOIN specialties s ON s.specialty_id = aa.specialty_id
+           WHERE s.universities_id = u.universities_id
+         ) AS days_since_last_application
+       FROM universities u
+       LEFT JOIN reviews r ON u.universities_id = r.university_id
+       WHERE u.universities_id = $1
+       GROUP BY u.universities_id`, 
       [id]
     );
 

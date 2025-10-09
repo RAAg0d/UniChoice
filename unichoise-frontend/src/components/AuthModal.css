@@ -52,3 +52,8 @@
   .btn-secondary:hover {
     background-color: #5a6268;
   }
+
+/* Extra spacing for exam score input */
+.exam-score-input {
+  margin-top: 0.5rem;
+}

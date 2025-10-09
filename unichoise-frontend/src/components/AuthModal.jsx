@@ -3,16 +3,19 @@ import { Modal, Button, Form, Alert } from 'react-bootstrap';
 import './AuthModal.css';
 import '../components/FormsCommon.css';
 
+// Authentication modal: handles login and registration flows
 const AuthModal = ({ showAuthModal, isRegister, setIsRegister, handleClose }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     fullName: '',
-    isRepresentative: false
+    isRepresentative: false,
+    examScore: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Submit authentication request to backend
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -36,7 +39,8 @@ const AuthModal = ({ showAuthModal, isRegister, setIsRegister, handleClose }) =>
           password: formData.password,
           ...(isRegister && {
             full_name: formData.fullName,
-            is_representative: formData.isRepresentative
+            is_representative: formData.isRepresentative,
+            exam_score: formData.examScore !== '' ? Number(formData.examScore) : undefined
           })
         })
       });
@@ -143,6 +147,22 @@ const AuthModal = ({ showAuthModal, isRegister, setIsRegister, handleClose }) =>
             </Form.Group>
           )}
 
+          {isRegister && (
+            <Form.Group className="mb-3 exam-score-input">
+              <Form.Label>Баллы ЕГЭ</Form.Label>
+              <Form.Control
+                type="number"
+                name="examScore"
+                value={formData.examScore}
+                onChange={handleChange}
+                min="0"
+                step="1"
+                disabled={loading}
+                placeholder="Например, 270"
+              />
+            </Form.Group>
+          )}
+
           <Button 
             variant="primary" 
             type="submit" 
@@ -162,7 +182,8 @@ const AuthModal = ({ showAuthModal, isRegister, setIsRegister, handleClose }) =>
                 email: '',
                 password: '',
                 fullName: '',
-                isRepresentative: false
+                isRepresentative: false,
+                examScore: ''
               });
             }}
             disabled={loading}

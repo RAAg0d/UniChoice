@@ -8,9 +8,10 @@ const UniversityList = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [filters, setFilters] = useState({ rating: '', location: '' });
+  const [filters, setFilters] = useState({ name: '', location: '', specialty: '', sortBy: 'popularity', sortOrder: 'desc' });
   const navigate = useNavigate();
 
+  // Loads paginated universities list with optional filters
   const loadUniversities = (page, filters) => {
     setIsLoading(true);
     const queryParams = new URLSearchParams({
@@ -56,30 +57,43 @@ const UniversityList = () => {
           <button onClick={() => navigate('/')}>На главную</button>
 
           <div className="filters">
-            <select name="rating" onChange={handleFilterChange}>
-              <option value="">Рейтинг</option>
-              <option value="5">5 звезд</option>
-              <option value="4">4 звезды</option>
-              <option value="3">3 звезды</option>
+            <input type="text" name="name" placeholder="Название" onChange={handleFilterChange} />
+            <input type="text" name="location" placeholder="Местоположение" onChange={handleFilterChange} />
+            <input type="text" name="specialty" placeholder="Специальность" onChange={handleFilterChange} />
+            <select name="sortBy" onChange={handleFilterChange} defaultValue="popularity">
+              <option value="popularity">Популярность</option>
+              <option value="rating">Рейтинг</option>
+              <option value="name">Название</option>
+              <option value="location">Местоположение</option>
             </select>
-            <input
-              type="text"
-              name="location"
-              placeholder="Местоположение"
-              onChange={handleFilterChange}
-            />
+            <select name="sortOrder" onChange={handleFilterChange} defaultValue="desc">
+              <option value="desc">По убыванию</option>
+              <option value="asc">По возрастанию</option>
+            </select>
           </div>
 
           {isLoading && <div className="loading-spinner">Загрузка...</div>}
 
           {error && <div className="error-message">{error}</div>}
 
+          {/* Render list of universities with aggregate stats */}
           <div className="universities-list">
             {universities.map((university) => (
               <div key={university.universities_id} className="university-item">
                 <h2>{university.name}</h2>
                 <div className="university-rating">
                   Оценка вуза: {university.average_rating || 'Нет оценок'}
+                </div>
+                <div className="university-stats">
+                  <div>Заявлений всего: {university.total_applications ?? 0}</div>
+                  <div>За 30 дней: {university.applications_last_30_days ?? 0}</div>
+                  <div>
+                    Последнее заявление: {
+                      university.days_since_last_application === null || university.days_since_last_application === undefined
+                        ? 'нет данных'
+                        : `${university.days_since_last_application} дн. назад`
+                    }
+                  </div>
                 </div>
                 <button onClick={() => navigate(`/universities/${university.universities_id}`)}>
                   Подробнее

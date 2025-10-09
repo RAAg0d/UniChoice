@@ -11,6 +11,7 @@ const UniversityDetails = ({ user }) => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  // Loads single university details with aggregate stats
   useEffect(() => {
     setIsLoading(true);
     setError(null);
@@ -59,6 +60,16 @@ const UniversityDetails = ({ user }) => {
           <h1>{university.name}</h1>
           <p><strong>Описание:</strong> {university.description}</p>
           <p><strong>Местоположение:</strong> {university.location}</p>
+          <div className="university-stats">
+            <p><strong>Оценка:</strong> {university.average_rating || 'Нет оценок'}</p>
+            <p><strong>Заявлений всего:</strong> {university.total_applications ?? 0}</p>
+            <p><strong>За последние 30 дней:</strong> {university.applications_last_30_days ?? 0}</p>
+            <p><strong>Последнее заявление:</strong> {
+              university.days_since_last_application === null || university.days_since_last_application === undefined
+                ? 'нет данных'
+                : `${university.days_since_last_application} дн. назад`
+            }</p>
+          </div>
           
           <SpecialtiesSection universityId={id} user={user} />
           
