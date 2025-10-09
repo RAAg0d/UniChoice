@@ -142,6 +142,20 @@ app.post('/register', async (req, res) => {
   try {
     const { email, password, full_name, is_representative } = req.body;
 
+    // Валидация входных данных
+    if (!email || !password || !full_name) {
+      return res.status(400).json({ message: 'Все поля обязательны для заполнения' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: 'Пароль должен содержать минимум 6 символов' });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: 'Некорректный формат email' });
+    }
+
     const userExists = await pool.query(
       'SELECT * FROM users WHERE email = $1',
       [email]
@@ -183,6 +197,33 @@ app.post('/register', async (req, res) => {
   } catch (error) {
     console.error('Ошибка при регистрации:', error);
     res.status(500).json({ message: 'Ошибка сервера при регистрации' });
+  }
+});
+
+// Эндпойнт для выхода (logout)
+app.post('/logout', authenticateToken, async (req, res) => {
+  try {
+    // В реальном приложении здесь можно добавить токен в черный список
+    // Для простоты просто возвращаем успешный ответ
+    res.json({ message: 'Успешный выход из системы' });
+  } catch (error) {
+    console.error('Ошибка при выходе:', error);
+    res.status(500).json({ message: 'Ошибка сервера при выходе' });
+  }
+});
+
+// Эндпойнт для получения информации о текущем пользователе
+app.get('/me', authenticateToken, async (req, res) => {
+  try {
+    res.json({
+      users_id: req.user.users_id,
+      email: req.user.email,
+      full_name: req.user.full_name,
+      user_type: req.user.user_type
+    });
+  } catch (error) {
+    console.error('Ошибка при получении информации о пользователе:', error);
+    res.status(500).json({ message: 'Ошибка сервера' });
   }
 });
 
@@ -275,6 +316,79 @@ app.get('/universities/:id', async (req, res) => {
   } catch (error) {
     console.error('Ошибка при получении информации о вузе:', error);
     res.status(500).json({ message: error.message });
+  }
+});
+
+// Создание нового университета (только для админов)
+app.post('/universities', isAdmin, async (req, res) => {
+  try {
+    const { name, description, location } = req.body;
+
+    if (!name || !description || !location) {
+      return res.status(400).json({ message: 'Все поля обязательны для заполнения' });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO universities (name, description, location) 
+       VALUES ($1, $2, $3) 
+       RETURNING *`,
+      [name, description, location]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Ошибка при создании университета:', error);
+    res.status(500).json({ message: 'Ошибка сервера при создании университета' });
+  }
+});
+
+// Обновление университета (только для админов)
+app.put('/universities/:id', isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, location } = req.body;
+
+    if (!name || !description || !location) {
+      return res.status(400).json({ message: 'Все поля обязательны для заполнения' });
+    }
+
+    const result = await pool.query(
+      `UPDATE universities 
+       SET name = $1, description = $2, location = $3 
+       WHERE universities_id = $4 
+       RETURNING *`,
+      [name, description, location, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Университет не найден' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Ошибка при обновлении университета:', error);
+    res.status(500).json({ message: 'Ошибка сервера при обновлении университета' });
+  }
+});
+
+// Удаление университета (только для админов)
+app.delete('/universities/:id', isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      'DELETE FROM universities WHERE universities_id = $1 RETURNING *',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Университет не найден' });
+    }
+
+    res.json({ message: 'Университет успешно удален' });
+  } catch (error) {
+    console.error('Ошибка при удалении университета:', error);
+    res.status(500).json({ message: 'Ошибка сервера при удалении университета' });
   }
 });
 
@@ -615,6 +729,109 @@ app.get('/universities/:id/specialties', async (req, res) => {
   }
 });
 
+// Создание новой специальности (только для админов)
+app.post('/universities/:id/specialties', isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { 
+      specialty_name, 
+      specialty_code, 
+      description, 
+      duration, 
+      form_of_education, 
+      budget_places, 
+      cost_per_year, 
+      passing_score 
+    } = req.body;
+
+    if (!specialty_name || !specialty_code) {
+      return res.status(400).json({ message: 'Название и код специальности обязательны' });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO specialties (
+        universities_id, specialty_name, specialty_code, description, 
+        duration, form_of_education, budget_places, cost_per_year, passing_score
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+       RETURNING *`,
+      [
+        id, specialty_name, specialty_code, description, 
+        duration, form_of_education, budget_places, cost_per_year, passing_score
+      ]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Ошибка при создании специальности:', error);
+    res.status(500).json({ message: 'Ошибка сервера при создании специальности' });
+  }
+});
+
+// Обновление специальности (только для админов)
+app.put('/specialties/:id', isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { 
+      specialty_name, 
+      specialty_code, 
+      description, 
+      duration, 
+      form_of_education, 
+      budget_places, 
+      cost_per_year, 
+      passing_score 
+    } = req.body;
+
+    if (!specialty_name || !specialty_code) {
+      return res.status(400).json({ message: 'Название и код специальности обязательны' });
+    }
+
+    const result = await pool.query(
+      `UPDATE specialties 
+       SET specialty_name = $1, specialty_code = $2, description = $3, 
+           duration = $4, form_of_education = $5, budget_places = $6, 
+           cost_per_year = $7, passing_score = $8
+       WHERE specialty_id = $9 
+       RETURNING *`,
+      [
+        specialty_name, specialty_code, description, 
+        duration, form_of_education, budget_places, 
+        cost_per_year, passing_score, id
+      ]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Специальность не найдена' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Ошибка при обновлении специальности:', error);
+    res.status(500).json({ message: 'Ошибка сервера при обновлении специальности' });
+  }
+});
+
+// Удаление специальности (только для админов)
+app.delete('/specialties/:id', isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      'DELETE FROM specialties WHERE specialty_id = $1 RETURNING *',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Специальность не найдена' });
+    }
+
+    res.json({ message: 'Специальность успешно удалена' });
+  } catch (error) {
+    console.error('Ошибка при удалении специальности:', error);
+    res.status(500).json({ message: 'Ошибка сервера при удалении специальности' });
+  }
+});
+
 app.put('/admission-applications/:id/status', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
@@ -722,6 +939,49 @@ app.get('/top-university', async (req, res) => {
       details: error.message 
     });
   }
+});
+
+// Централизованная обработка ошибок
+app.use((err, req, res, next) => {
+  console.error('Ошибка сервера:', err);
+  
+  if (err.name === 'ValidationError') {
+    return res.status(400).json({ 
+      message: 'Ошибка валидации', 
+      details: err.message 
+    });
+  }
+  
+  if (err.name === 'UnauthorizedError') {
+    return res.status(401).json({ 
+      message: 'Неавторизованный доступ' 
+    });
+  }
+  
+  if (err.code === '23505') { // PostgreSQL unique violation
+    return res.status(409).json({ 
+      message: 'Запись с такими данными уже существует' 
+    });
+  }
+  
+  if (err.code === '23503') { // PostgreSQL foreign key violation
+    return res.status(400).json({ 
+      message: 'Нарушение связности данных' 
+    });
+  }
+  
+  res.status(500).json({ 
+    message: 'Внутренняя ошибка сервера',
+    ...(process.env.NODE_ENV === 'development' && { details: err.message })
+  });
+});
+
+// Обработка 404 для несуществующих маршрутов
+app.use('*', (req, res) => {
+  res.status(404).json({ 
+    message: 'Маршрут не найден',
+    path: req.originalUrl 
+  });
 });
 
 app.listen(PORT, () => {

@@ -3,7 +3,7 @@
 # UniChoice
 
 <p align="center">
-  <img src="unichoise-frontend/public/banner.png" alt="UniChoice Banner" width="500"/>
+  <img src="unichoise-frontend/public/banner.png" alt="UniChoice Banner" width="300"/>
 </p>
 
 </div>
