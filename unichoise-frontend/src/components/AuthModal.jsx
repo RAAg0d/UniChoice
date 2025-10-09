@@ -1,19 +1,36 @@
+/**
+ * Компонент модального окна аутентификации
+ * 
+ * Обрабатывает вход в систему и регистрацию пользователей.
+ * Поддерживает регистрацию обычных пользователей и представителей вузов.
+ * Включает валидацию форм и обработку ошибок.
+ * 
+ * Функциональность:
+ * - Переключение между режимами входа и регистрации
+ * - Валидация email, пароля, имени
+ * - Регистрация с указанием баллов ЕГЭ
+ * - Обработка ошибок аутентификации
+ * - Сохранение токена в localStorage
+ */
+
 import React, { useState } from 'react';
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
 import './AuthModal.css';
 import '../components/FormsCommon.css';
 
-// Authentication modal: handles login and registration flows
 const AuthModal = ({ showAuthModal, isRegister, setIsRegister, handleClose }) => {
+  // Состояние формы аутентификации
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    fullName: '',
-    isRepresentative: false,
-    examScore: ''
+    email: '',              // Email пользователя
+    password: '',           // Пароль
+    fullName: '',           // Полное имя (только для регистрации)
+    isRepresentative: false, // Является ли представителем вуза
+    examScore: ''           // Баллы ЕГЭ (только для регистрации)
   });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  
+  // Состояние UI
+  const [error, setError] = useState('');     // Ошибки формы
+  const [loading, setLoading] = useState(false); // Состояние загрузки
 
   // Submit authentication request to backend
   const handleSubmit = async (e) => {

@@ -1,32 +1,84 @@
-const express = require('express');
-const pool = require('../db/pool');
-const { isAdmin } = require('../middleware/auth');
+/**
+ * Роутер для работы с университетами
+ * 
+ * Обрабатывает все запросы связанные с университетами:
+ * - GET / - список университетов с фильтрами и сортировкой
+ * - GET /random - случайный университет
+ * - GET /:id - информация о конкретном университете
+ * - POST / - создание университета (только админы)
+ * - PUT /:id - обновление университета (только админы)
+ * - DELETE /:id - удаление университета (только админы)
+ * - GET /:id/reviews - отзывы о университете
+ * - POST /:id/reviews - добавление отзыва
+ * - GET /:id/specialties - специальности университета
+ * - POST /:id/specialties - создание специальности (только админы)
+ * - PUT /specialties/:id - обновление специальности (только админы)
+ * - DELETE /specialties/:id - удаление специальности (только админы)
+ * 
+ * Включает агрегированную статистику по заявлениям и отзывам.
+ */
+
+const express = require('express');     // Express framework
+const pool = require('../db/pool');     // Пул соединений с БД
+const { isAdmin } = require('../middleware/auth'); // Middleware для проверки прав админа
 
 const router = express.Router();
 
-// GET /universities (list with aggregates)
+/**
+ * GET /universities - Список университетов с фильтрами и сортировкой
+ * 
+ * Возвращает пагинированный список университетов с агрегированной статистикой:
+ * - Средний рейтинг по отзывам
+ * - Общее количество заявлений
+ * - Количество заявлений за последние 30 дней
+ * - Дни с последней подачи заявления
+ * 
+ * Поддерживает фильтрацию по:
+ * - name: название университета (ILIKE)
+ * - location: местоположение (ILIKE)
+ * - specialty: название специальности (ILIKE)
+ * 
+ * Поддерживает сортировку по:
+ * - popularity: по количеству заявлений (по умолчанию)
+ * - rating: по среднему рейтингу
+ * - name: по названию
+ * - location: по местоположению
+ * 
+ * @param {number} page - номер страницы (по умолчанию 1)
+ * @param {string} name - фильтр по названию
+ * @param {string} location - фильтр по местоположению
+ * @param {string} specialty - фильтр по специальности
+ * @param {string} sortBy - поле для сортировки
+ * @param {string} sortOrder - порядок сортировки (asc/desc)
+ * @returns {Object} список университетов и общее количество страниц
+ */
 router.get('/', async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = 10;
   const offset = (page - 1) * limit;
   const { name, location, specialty, sortBy, sortOrder } = req.query;
   const order = (sortOrder || 'desc').toLowerCase() === 'asc' ? 'ASC' : 'DESC';
+  
   try {
-    // Base select + aggregates
+    // Базовый запрос с агрегированной статистикой
     let baseSelect = `
       SELECT u.*, 
+             -- Средний рейтинг по отзывам
              COALESCE(AVG(r.rating)::numeric(10, 1), 0) AS average_rating,
+             -- Общее количество заявлений во все специальности вуза
              COALESCE((
                SELECT COUNT(*) FROM admission_applications aa
                JOIN specialties s ON s.specialty_id = aa.specialty_id
                WHERE s.universities_id = u.universities_id
              ), 0) AS total_applications,
+             -- Количество заявлений за последние 30 дней
              COALESCE((
                SELECT COUNT(*) FROM admission_applications aa
                JOIN specialties s ON s.specialty_id = aa.specialty_id
                WHERE s.universities_id = u.universities_id
                  AND aa.created_at >= NOW() - INTERVAL '30 days'
              ), 0) AS applications_last_30_days,
+             -- Дни с последней подачи заявления (NULL если не было)
              (
                SELECT CASE WHEN MAX(aa.created_at) IS NULL THEN NULL 
                            ELSE EXTRACT(DAY FROM (NOW() - MAX(aa.created_at)))::int END

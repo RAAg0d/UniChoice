@@ -1,9 +1,19 @@
-const { Pool } = require('pg');
-const env = require('../config/env');
+/**
+ * Пул соединений с базой данных PostgreSQL
+ * 
+ * Создает и экспортирует единый пул соединений для всего приложения.
+ * Пул управляет множественными соединениями с БД для оптимизации производительности.
+ * 
+ * Использует настройки из config/env.js для подключения к PostgreSQL.
+ */
 
-// Single shared connection pool
+const { Pool } = require('pg');  // PostgreSQL клиент для Node.js
+const env = require('../config/env'); // Импортируем настройки БД
+
+// Создаем единый пул соединений с настройками из переменных окружения
 const pool = new Pool(env.DB);
 
+// Экспортируем пул для использования в других модулях
 module.exports = pool;
 
 

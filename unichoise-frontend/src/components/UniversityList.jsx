@@ -1,24 +1,56 @@
+/**
+ * Компонент списка университетов
+ * 
+ * Отображает пагинированный список университетов с возможностью фильтрации и сортировки.
+ * Включает статистику по заявлениям: общее количество, за последние 30 дней, дни с последней подачи.
+ * 
+ * Функциональность:
+ * - Загрузка списка университетов с пагинацией
+ * - Фильтрация по названию, местоположению, специальности
+ * - Сортировка по популярности, рейтингу, названию, местоположению
+ * - Отображение статистики заявлений для каждого университета
+ * - Навигация к детальной странице университета
+ */
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './UniversityList.css';
 
 const UniversityList = () => {
-  const [universities, setUniversities] = useState([]);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [filters, setFilters] = useState({ name: '', location: '', specialty: '', sortBy: 'popularity', sortOrder: 'desc' });
+  // Состояние для списка университетов и пагинации
+  const [universities, setUniversities] = useState([]);     // Список университетов
+  const [page, setPage] = useState(1);                      // Текущая страница
+  const [totalPages, setTotalPages] = useState(1);          // Общее количество страниц
+  const [error, setError] = useState(null);                 // Ошибки загрузки
+  const [isLoading, setIsLoading] = useState(false);        // Состояние загрузки
+  
+  // Состояние фильтров и сортировки
+  const [filters, setFilters] = useState({ 
+    name: '',                    // Фильтр по названию
+    location: '',               // Фильтр по местоположению
+    specialty: '',              // Фильтр по специальности
+    sortBy: 'popularity',       // Поле сортировки
+    sortOrder: 'desc'           // Порядок сортировки
+  });
+  
   const navigate = useNavigate();
 
-  // Loads paginated universities list with optional filters
+  /**
+   * Загружает список университетов с пагинацией и фильтрами
+   * 
+   * @param {number} page - номер страницы
+   * @param {Object} filters - объект с фильтрами и параметрами сортировки
+   */
   const loadUniversities = (page, filters) => {
     setIsLoading(true);
+    
+    // Формируем параметры запроса из фильтров и номера страницы
     const queryParams = new URLSearchParams({
       page,
       ...filters,
     }).toString();
 
+    // Отправляем запрос к API
     fetch(`http://localhost:5000/universities?${queryParams}`)
       .then((response) => {
         if (!response.ok) {
@@ -27,6 +59,8 @@ const UniversityList = () => {
         return response.json();
       })
       .then((data) => {
+        // Обновляем список университетов
+        // Если это первая страница - заменяем список, иначе добавляем к существующему
         setUniversities((prev) => (page === 1 ? data.universities : [...prev, ...data.universities]));
         setTotalPages(data.totalPages);
       })

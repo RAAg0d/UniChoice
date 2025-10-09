@@ -1,6 +1,8 @@
 {
+  "_comment": "UniChoice Frontend - React приложение для системы выбора университетов",
   "name": "unichoise-frontend",
   "version": "0.1.0",
+  "description": "Frontend React приложение для системы выбора университетов с аутентификацией, фильтрацией и управлением заявлениями",
   "private": true,
   "dependencies": {
     "@testing-library/dom": "^10.4.0",

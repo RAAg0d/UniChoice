@@ -1,6 +1,8 @@
 {
+  "_comment": "UniChoice Backend - Node.js/Express API сервер для системы выбора университетов",
   "name": "unichoice-backend",
   "version": "1.0.0",
+  "description": "Backend API для системы выбора университетов с аутентификацией, управлением заявлениями и отзывами",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
