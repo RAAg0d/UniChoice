@@ -1,18 +1,18 @@
+// Компонент для отображения заявлений пользователя на поступление
 import React, { useEffect, useState } from 'react';
-import { Table, Badge, Alert, Button } from 'react-bootstrap';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Table, Badge, Alert } from 'react-bootstrap';
 import './MyApplications.css';
 
 const MyApplications = ({ user }) => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
-  const location = useLocation();
 
+  // Загрузка заявлений пользователя при монтировании компонента
   useEffect(() => {
     const fetchApplications = async () => {
       try {
+        // Запрос к API для получения заявлений пользователя
         const response = await fetch('http://localhost:5000/admission-applications/my', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -32,6 +32,7 @@ const MyApplications = ({ user }) => {
       }
     };
 
+    // Загружаем заявления только если пользователь авторизован
     if (user) {
       fetchApplications();
     }

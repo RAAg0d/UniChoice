@@ -1,3 +1,4 @@
+// Компонент нижней секции с кнопками для случайного вуза и топ-вуза
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './BottomSection.css';
@@ -5,15 +6,21 @@ import './BottomSection.css';
 const BottomSection = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Состояние загрузки для кнопок
   const [isLoadingRandom, setIsLoadingRandom] = useState(false);
   const [isLoadingTop, setIsLoadingTop] = useState(false);
 
+  // Обработчик для получения случайного вуза
   const handleRandomUniversity = async () => {
     setIsLoadingRandom(true);
     try {
+      // Запрос к API для получения случайного вуза
       const response = await fetch('http://localhost:5000/universities/random');
       if (!response.ok) throw new Error('Не удалось загрузить данные');
+      
       const randomUniversity = await response.json();
+      // Переход на страницу случайного вуза
       navigate(`/universities/${randomUniversity.universities_id}`);
     } catch (error) {
       console.error('Ошибка при получении случайного вуза:', error);
@@ -23,9 +30,11 @@ const BottomSection = () => {
     }
   };
 
+  // Обработчик для получения вуза с наивысшим рейтингом
   const handleTopUniversity = async () => {
     setIsLoadingTop(true);
     try {
+      // Запрос к API для получения топ-вуза
       const response = await fetch('http://localhost:5000/top-university');
       const data = await response.json();
       
@@ -37,11 +46,13 @@ const BottomSection = () => {
         throw new Error('Вузы не найдены');
       }
 
+      // Формирование сообщения с информацией о вузе
       const message = data.review_count > 0
         ? `Переходим к вузу "${data.name}" с рейтингом ${data.average_rating}`
         : `Переходим к вузу "${data.name}" (пока без отзывов)`;
 
       console.log(message);
+      // Переход на страницу топ-вуза
       navigate(`/universities/${data.universities_id}`);
     } catch (error) {
       console.error('Детальная ошибка:', error);

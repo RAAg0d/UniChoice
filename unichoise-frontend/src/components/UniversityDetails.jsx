@@ -1,31 +1,14 @@
-/**
- * Компонент детальной страницы университета
- * 
- * Отображает подробную информацию об университете, включая:
- * - Основную информацию (название, описание, местоположение)
- * - Статистику заявлений (общее количество, за 30 дней, дни с последней подачи)
- * - Средний рейтинг по отзывам
- * - Список специальностей
- * - Отзывы студентов
- * 
- * Функциональность:
- * - Загрузка данных университета по ID
- * - Отображение агрегированной статистики
- * - Навигация к списку университетов
- * - Интеграция с компонентами отзывов и специальностей
- */
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import ReviewsSection from './ReviewsSection';     // Компонент отзывов
-import SpecialtiesSection from './SpecialtiesSection'; // Компонент специальностей
+import ReviewsSection from './ReviewsSection';
+import SpecialtiesSection from './SpecialtiesSection';
 import './UniversityDetails.css';
 
 const UniversityDetails = ({ user }) => {
-  const { id } = useParams();                    // ID университета из URL
-  const [university, setUniversity] = useState(null); // Данные университета
-  const [isLoading, setIsLoading] = useState(true);   // Состояние загрузки
-  const [error, setError] = useState(null);           // Ошибки загрузки
+  const { id } = useParams();
+  const [university, setUniversity] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   // Loads single university details with aggregate stats

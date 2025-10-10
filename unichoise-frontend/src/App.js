@@ -1,47 +1,28 @@
-/**
- * UniChoice Frontend - Главное приложение
- * 
- * React приложение для системы выбора университетов.
- * Включает аутентификацию, управление университетами, заявлениями и отзывами.
- * 
- * Основные компоненты:
- * - Header: навигация и аутентификация
- * - AuthModal: модальное окно входа/регистрации
- * - UniversityList: список университетов с фильтрами
- * - UniversityDetails: детальная информация об университете
- * - AdminPanel: панель администратора
- * - MyApplications: мои заявления
- * 
- * Использует React Router для навигации и Bootstrap для стилизации.
- */
-
+// Главный компонент приложения UniChoice
 import React, { useState, useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import 'bootstrap/dist/css/bootstrap.min.css'; // Bootstrap стили
-import './App.css'; // Кастомные стили приложения
+import 'bootstrap/dist/css/bootstrap.min.css';
+import './App.css';
 
-// Импорт основных компонентов
-import Header from './components/Header';                    // Шапка сайта с навигацией
-import AuthModal from './components/AuthModal';             // Модальное окно аутентификации
-import BottomSection from './components/BottomSection';     // Нижняя секция главной страницы
-import QuestionSection from './components/QuestionSection'; // Секция с вопросами
-import Footer from './components/Footer';                   // Подвал сайта
-import AdminPanel from './components/AdminPanel';           // Панель администратора
-import UniversityApplications from './components/UniversityApplications'; // Заявления университетов
-import AddUniversityForm from './components/AddUniversityForm';           // Форма добавления вуза
-import RepresentativeApplications from './components/RepresentativeApplications'; // Заявления представителей
-import AdmissionApplications from './components/AdmissionApplications';   // Заявления на поступление
-import MyApplications from './components/MyApplications';   // Мои заявления
-import WelcomeSection from './components/WelcomeSection';   // Приветственная секция
+// Импорт компонентов
+import Header from './components/Header';
+import AuthModal from './components/AuthModal';
+import BottomSection from './components/BottomSection';
+import QuestionSection from './components/QuestionSection';
+import Footer from './components/Footer';
+import AdminPanel from './components/AdminPanel';
+import UniversityApplications from './components/UniversityApplications';
+import AddUniversityForm from './components/AddUniversityForm';
+import RepresentativeApplications from './components/RepresentativeApplications';
+import AdmissionApplications from './components/AdmissionApplications';
+import MyApplications from './components/MyApplications';
+import WelcomeSection from './components/WelcomeSection';
 
 // Ленивая загрузка тяжелых компонентов для оптимизации
 const UniversityList = React.lazy(() => import('./components/UniversityList'));
 const UniversityDetails = React.lazy(() => import('./components/UniversityDetails'));
 
-/**
- * Компонент загрузки для ленивых компонентов
- * Показывает спиннер во время загрузки компонентов
- */
+// Компонент загрузки для ленивых компонентов
 const LoadingSpinner = () => (
   <div className="loading-spinner">
     <div className="spinner-border text-primary" role="status">
@@ -50,20 +31,17 @@ const LoadingSpinner = () => (
   </div>
 );
 
-/**
- * Основной контент приложения
- * Управляет состоянием пользователя, модальными окнами и навигацией
- */
+// Основной контент приложения с роутингом
 const AppContent = () => {
   const navigate = useNavigate();
   
-  // Состояние пользователя и аутентификации
-  const [user, setUser] = useState(null);                    // Текущий пользователь
-  const [showAuthModal, setShowAuthModal] = useState(false); // Показать модальное окно входа
-  const [isRegister, setIsRegister] = useState(false);       // Режим регистрации/входа
-  const [showAddUniversityForm, setShowAddUniversityForm] = useState(false); // Форма добавления вуза
+  // Состояние пользователя и модальных окон
+  const [user, setUser] = useState(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isRegister, setIsRegister] = useState(false);
+  const [showAddUniversityForm, setShowAddUniversityForm] = useState(false);
   
-  // Данные формы аутентификации
+  // Данные формы авторизации
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
