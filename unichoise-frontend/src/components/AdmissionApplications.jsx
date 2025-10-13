@@ -132,7 +132,7 @@ const AdmissionApplications = ({ user }) => {
                   <td>{app.university_name}</td>
                   <td>{app.specialty_name}</td>
                   <td>{app.total_score}</td>
-                  <td>{app.wants_budget ? 'Бюджет' : 'Платное'}</td>
+                  <td>{(app.wants_budget === true || app.wants_budget === 'Yes') ? 'Бюджет' : 'Платное'}</td>
                   <td>
                     <Badge bg={
                       app.status === 'approved' ? 'success' : 
@@ -143,7 +143,7 @@ const AdmissionApplications = ({ user }) => {
                     </Badge>
                   </td>
                   <td>
-                    {app.status === 'на рассмотрении' && (
+                    {app.status === 'pending' && (
                       <div className="d-flex gap-2">
                         <Button 
                           variant="success" 

@@ -292,8 +292,32 @@ app.post('/universities/:id/reviews', async (req, res) => {
   const { id } = req.params;
   const { user_id, rating, comment } = req.body;
 
-  if (!rating || rating < 1 || rating > 5) {
+  // Валидация данных согласно даталогической модели
+  if (!user_id || !rating) {
+    return res.status(400).json({ message: 'ID пользователя и оценка обязательны' });
+  }
+
+  // Валидация ID пользователя (1-999)
+  const parsedUserId = parseInt(user_id);
+  if (isNaN(parsedUserId) || parsedUserId < 1 || parsedUserId > 999) {
+    return res.status(400).json({ message: 'ID пользователя должен быть от 1 до 999' });
+  }
+
+  // Валидация ID университета (1-999)
+  const parsedUniversityId = parseInt(id);
+  if (isNaN(parsedUniversityId) || parsedUniversityId < 1 || parsedUniversityId > 999) {
+    return res.status(400).json({ message: 'ID университета должен быть от 1 до 999' });
+  }
+
+  // Валидация оценки (1-5)
+  const parsedRating = parseInt(rating);
+  if (isNaN(parsedRating) || parsedRating < 1 || parsedRating > 5) {
     return res.status(400).json({ message: 'Оценка должна быть от 1 до 5' });
+  }
+
+  // Валидация длины комментария (максимум 150 символов)
+  if (comment && comment.length > 150) {
+    return res.status(400).json({ message: 'Комментарий не должен превышать 150 символов' });
   }
 
   try {
@@ -302,7 +326,7 @@ app.post('/universities/:id/reviews', async (req, res) => {
        VALUES ($1, $2, $3, $4) 
        RETURNING reviews.*, 
        (SELECT full_name FROM users WHERE users_id = $2) AS full_name`,
-      [id, user_id, rating, comment]
+      [parsedUniversityId, parsedUserId, parsedRating, comment]
     );
 
     res.status(201).json(newReview.rows[0]);
@@ -517,7 +541,7 @@ app.get('/admission-applications/university', authenticateToken, async (req, res
     const result = await pool.query(`
       SELECT 
         aa.application_id,
-        aa.phone_number,
+        regexp_replace(aa.phone_number, '^\\+9', '+7') AS phone_number,
         aa.total_score,
         aa.wants_budget,
         aa.status,
@@ -556,16 +580,72 @@ app.get('/admission-applications/university', authenticateToken, async (req, res
 
 app.post('/admission-applications', authenticateToken, async (req, res) => {
   try {
-    const { specialtyId, phoneNumber, totalScore, wantsBudget } = req.body;
+    const { specialtyId, phoneNumber, totalScore } = req.body;
+    let { wantsBudget } = req.body;
     const userId = req.user.users_id;
 
     if (req.user.user_type === 'university_representative') {
       return res.status(403).json({ message: 'Представители вузов не могут подавать заявления' });
     }
 
+    // Валидация данных согласно даталогической модели (wantsBudget делаем необязательным)
+    if (!specialtyId || !phoneNumber || !totalScore) {
+      return res.status(400).json({ message: 'Все поля обязательны для заполнения' });
+    }
+
+    // Нормализация номера телефона: принимаем 8XXXXXXXXXX / 7XXXXXXXXXX / XXXXXXXXXX → +7(XXX)XXXXXXX
+    const digits = String(phoneNumber).replace(/\D/g, '');
+    let normalizedPhone = null;
+    if (digits.length === 11 && digits.startsWith('8')) {
+      // 8XXXXXXXXXX -> +7(XXX)XXXXXXX
+      const d = '7' + digits.slice(1);
+      normalizedPhone = `+7(${d.slice(1,4)})${d.slice(4,11)}`;
+    } else if (digits.length === 11 && digits.startsWith('7')) {
+      const d = digits;
+      normalizedPhone = `+7(${d.slice(1,4)})${d.slice(4,11)}`;
+    } else if (digits.length === 10) {
+      const d = '7' + digits;
+      normalizedPhone = `+7(${d.slice(1,4)})${d.slice(4,11)}`;
+    }
+
+    // Проверка после нормализации (+7(XXX)XXXXXXX)
+    const phoneRegex = /^\+7\(\d{3}\)\d{7}$/;
+    if (!normalizedPhone || !phoneRegex.test(normalizedPhone)) {
+      return res.status(400).json({ message: 'Номер телефона должен быть в формате +7(999)9999999' });
+    }
+
+    // Валидация общего балла (1-999)
+    const parsedTotalScore = parseInt(totalScore);
+    if (isNaN(parsedTotalScore) || parsedTotalScore < 1 || parsedTotalScore > 999) {
+      return res.status(400).json({ message: 'Общий балл должен быть от 1 до 999' });
+    }
+
+    // Нормализация желания поступить на бюджет (поле необязательное)
+    if (wantsBudget === undefined || wantsBudget === null || wantsBudget === '') {
+      wantsBudget = 'No';
+    } else {
+      if (typeof wantsBudget === 'boolean') {
+        wantsBudget = wantsBudget ? 'Yes' : 'No';
+      } else if (typeof wantsBudget === 'string') {
+        const wb = wantsBudget.trim().toLowerCase();
+        if (wb === 'true' || wb === 'yes' || wb === 'да') wantsBudget = 'Yes';
+        else if (wb === 'false' || wb === 'no' || wb === 'нет') wantsBudget = 'No';
+      }
+
+      if (!['Yes', 'No'].includes(wantsBudget)) {
+        return res.status(400).json({ message: 'Поле "Хочет бюджет" должно быть Yes или No' });
+      }
+    }
+
+    // Валидация ID специальности (1-999)
+    const parsedSpecialtyId = parseInt(specialtyId);
+    if (isNaN(parsedSpecialtyId) || parsedSpecialtyId < 1 || parsedSpecialtyId > 999) {
+      return res.status(400).json({ message: 'ID специальности должен быть от 1 до 999' });
+    }
+
     const existingApplication = await pool.query(
       'SELECT * FROM admission_applications WHERE user_id = $1 AND specialty_id = $2',
-      [userId, specialtyId]
+      [userId, parsedSpecialtyId]
     );
 
     if (existingApplication.rows.length > 0) {
@@ -574,10 +654,10 @@ app.post('/admission-applications', authenticateToken, async (req, res) => {
 
     const result = await pool.query(
       `INSERT INTO admission_applications 
-       (user_id, specialty_id, phone_number, total_score, wants_budget) 
-       VALUES ($1, $2, $3, $4, $5) 
+       (user_id, specialty_id, phone_number, total_score, wants_budget, status) 
+       VALUES ($1, $2, $3, $4, $5, 'pending') 
        RETURNING *`,
-      [userId, specialtyId, phoneNumber, totalScore, wantsBudget]
+      [userId, parsedSpecialtyId, normalizedPhone, parsedTotalScore, wantsBudget]
     );
 
     res.status(201).json(result.rows[0]);
@@ -717,6 +797,10 @@ app.put('/admission-applications/:id/status', authenticateToken, async (req, res
       return res.status(403).json({ message: 'Только представители вузов могут изменять статус заявлений' });
     }
 
+    if (!['pending', 'approved', 'rejected'].includes(String(status))) {
+      return res.status(400).json({ message: 'Недопустимый статус. Используйте: pending, approved, rejected' });
+    }
+
     const result = await pool.query(
       `UPDATE admission_applications 
        SET status = $1 
@@ -736,14 +820,62 @@ app.put('/admission-applications/:id/status', authenticateToken, async (req, res
   }
 });
 
+// Утвердить заявление (короткий маршрут)
+app.post('/admission-applications/:id/approve', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.user_type !== 'university_representative') {
+      return res.status(403).json({ message: 'Только представители вузов могут изменять статус заявлений' });
+    }
+
+    const { id } = req.params;
+    const result = await pool.query(
+      `UPDATE admission_applications SET status = 'approved' WHERE application_id = $1 RETURNING *`,
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Заявление не найдено' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Ошибка при утверждении заявления:', error);
+    res.status(500).json({ message: 'Ошибка сервера при обновлении статуса' });
+  }
+});
+
+// Отклонить заявление (короткий маршрут)
+app.post('/admission-applications/:id/reject', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.user_type !== 'university_representative') {
+      return res.status(403).json({ message: 'Только представители вузов могут изменять статус заявлений' });
+    }
+
+    const { id } = req.params;
+    const result = await pool.query(
+      `UPDATE admission_applications SET status = 'rejected' WHERE application_id = $1 RETURNING *`,
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Заявление не найдено' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Ошибка при отклонении заявления:', error);
+    res.status(500).json({ message: 'Ошибка сервера при обновлении статуса' });
+  }
+});
+
 app.get('/admission-applications/my', authenticateToken, async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT 
         aa.application_id,
-        aa.phone_number,
+        regexp_replace(aa.phone_number, '^\\+9', '+7') AS phone_number,
         aa.total_score,
-        aa.wants_budget,
+        (aa.wants_budget = 'Yes') AS wants_budget, -- вернуть bool для фронта
         aa.status,
         aa.created_at,
         s.specialty_name,

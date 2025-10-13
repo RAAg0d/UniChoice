@@ -99,7 +99,7 @@ const Header = ({ user, setShowAuthModal, setShowAddUniversityForm, handleLogout
           </>
         )}
         
-        {user?.user_type === 'user' && (
+        {(user?.user_type === 'user' || user?.user_type === 'student') && (
           <button onClick={() => {
             if (location.pathname === '/my-admission-applications') {
               navigate('/');

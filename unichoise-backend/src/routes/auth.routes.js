@@ -46,7 +46,10 @@ router.post('/register', async (req, res) => {
     // Валидация обязательных полей
     if (!email || !password || !full_name) return res.status(400).json({ message: 'Все поля обязательны для заполнения' });
     
-    // Валидация длины пароля
+    // Валидация длины полей согласно даталогической модели
+    if (full_name.length > 100) return res.status(400).json({ message: 'Полное имя не должно превышать 100 символов' });
+    if (email.length > 100) return res.status(400).json({ message: 'Email не должен превышать 100 символов' });
+    if (password.length > 60) return res.status(400).json({ message: 'Пароль не должен превышать 60 символов' });
     if (password.length < 6) return res.status(400).json({ message: 'Пароль должен содержать минимум 6 символов' });
     
     // Валидация формата email
@@ -60,11 +63,13 @@ router.post('/register', async (req, res) => {
     // Хеширование пароля
     const hashed = await bcrypt.hash(password, 10);
     
-    // Валидация и обработка балла ЕГЭ
+    // Валидация и обработка балла ЕГЭ согласно даталогической модели (1-999)
     let sanitizedExamScore = null;
     if (exam_score !== undefined && exam_score !== null && exam_score !== '') {
       const parsed = parseInt(exam_score, 10);
-      if (Number.isNaN(parsed) || parsed < 0) return res.status(400).json({ message: 'Некорректный балл ЕГЭ' });
+      if (Number.isNaN(parsed) || parsed < 1 || parsed > 999) {
+        return res.status(400).json({ message: 'Балл ЕГЭ должен быть от 1 до 999' });
+      }
       sanitizedExamScore = parsed;
     }
     
@@ -72,7 +77,7 @@ router.post('/register', async (req, res) => {
     const ins = await pool.query(
       `INSERT INTO users (email, password, full_name, user_type, exam_score) VALUES ($1,$2,$3,$4,$5)
        RETURNING users_id,email,full_name,user_type,exam_score`,
-      [email, hashed, full_name, is_representative ? 'university_representative' : 'user', sanitizedExamScore]
+      [email, hashed, full_name, is_representative ? 'university_representative' : 'student', sanitizedExamScore]
     );
     
     const user = ins.rows[0];
@@ -83,6 +88,24 @@ router.post('/register', async (req, res) => {
     // Возврат токена и данных пользователя
     res.status(201).json({ token, users_id: user.users_id, email: user.email, full_name: user.full_name, user_type: user.user_type, exam_score: user.exam_score ?? null });
   } catch (e) {
+    // Подробный лог для диагностики 500 ошибок
+    console.error('Ошибка при регистрации пользователя:', {
+      code: e.code,
+      detail: e.detail,
+      message: e.message,
+      constraint: e.constraint,
+    });
+
+    // Явная обработка конфликтов уникальности email
+    if (e.code === '23505') {
+      return res.status(400).json({ message: 'Пользователь с таким email уже существует' });
+    }
+
+    // Явная обработка нарушений CHECK/NOT NULL и т.п.
+    if (e.code === '23514') {
+      return res.status(400).json({ message: 'Некорректные данные. Проверьте заполнение полей.' });
+    }
+
     res.status(500).json({ message: 'Ошибка сервера при регистрации' });
   }
 });
