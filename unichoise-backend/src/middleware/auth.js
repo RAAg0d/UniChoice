@@ -57,5 +57,3 @@ function isRepresentative(req, res, next) {
 }
 
 module.exports = { authenticateToken, isAdmin, isRepresentative };
-
-
