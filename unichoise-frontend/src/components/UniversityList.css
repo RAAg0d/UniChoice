@@ -40,17 +40,80 @@
   background-color: #5a0b9d;
 }
 
+/* Стилизованные фильтры */
 .filters {
-  margin-bottom: 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  border: 1px solid #dee2e6;
 }
 
-.filters select,
-.filters input {
-  padding: 10px;
-  margin-right: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-input, .filter-select {
+  padding: 12px 16px;
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
   font-size: 16px;
+  transition: all 0.3s ease;
+  background: white;
+  color: #495057;
+}
+
+.filter-input:focus, .filter-select:focus {
+  outline: none;
+  border-color: #6a0dad;
+  box-shadow: 0 0 0 3px rgba(106, 13, 173, 0.1);
+  transform: translateY(-2px);
+}
+
+.filter-input::placeholder {
+  color: #adb5bd;
+  font-style: italic;
+}
+
+.filter-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.clear-filters-btn {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+}
+
+.clear-filters-btn:hover {
+  background: linear-gradient(135deg, #c82333 0%, #a71e2a 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
 }
 
 .loading-spinner {
@@ -78,50 +141,89 @@
 .university-item {
   background-color: white;
   border: 1px solid #ddd;
-  border-radius: 5px;
-  padding: 20px;
+  border-radius: 8px;
+  padding: 25px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   width: 100%;
+  margin-bottom: 20px;
 }
 
 .university-item:hover {
   transform: translateY(-5px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
 .university-item:last-child {
   margin-bottom: 30px;
 }
 
-.university-item h2 {
-  margin: 0;
-  color: #444;
-  font-size: 20px;
-  flex: 1;
+.university-header {
+  margin-bottom: 20px;
 }
 
-.university-item .university-rating {
-  margin-left: 20px;
-  font-size: 16px;
-  color: #6a0dad;
+.university-header h2 {
+  margin: 0;
+  color: #333;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+/* Сетка для метрик */
+.university-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.metric-card {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 15px;
+  transition: all 0.3s ease;
+}
+
+.metric-card:hover {
+  background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.metric-label {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 8px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metric-value {
+  font-size: 20px;
   font-weight: bold;
+  color: #333;
 }
 
 .university-item button {
-  padding: 10px 20px;
+  width: 100%;
+  padding: 12px 24px;
   background-color: #6a0dad;
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s ease;
-  margin-left: 20px;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  margin-top: 10px;
 }
 
 .university-item button:hover {
   background-color: #5a0b9d;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(106, 13, 173, 0.3);
 }

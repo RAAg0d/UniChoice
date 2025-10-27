@@ -62,6 +62,11 @@ const UniversityDetails = ({ user }) => {
           <p><strong>Местоположение:</strong> {university.location}</p>
           <div className="university-stats">
             <p><strong>Оценка:</strong> {university.average_rating || 'Нет оценок'}</p>
+            {university.additive_criterion && (
+              <p style={{ backgroundColor: '#e8f5e9', fontWeight: 'bold', color: '#2e7d32' }}>
+                <strong>📊 Аддитивный критерий:</strong> {(university.additive_criterion).toFixed(4)}
+              </p>
+            )}
             <p><strong>Заявлений всего:</strong> {university.total_applications ?? 0}</p>
             <p><strong>За последние 30 дней:</strong> {university.applications_last_30_days ?? 0}</p>
             <p><strong>Последнее заявление:</strong> {
