@@ -43,11 +43,13 @@ const AdmissionForm = ({ show, handleClose, specialtyId, universityId, user }) =
         })
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
+        const data = await response.json();
+        console.error('Ошибка ответа:', data);
         throw new Error(data.message || 'Произошла ошибка при подаче заявления');
       }
+      
+      const data = await response.json();
 
       setSuccess(true);
       setTimeout(() => {

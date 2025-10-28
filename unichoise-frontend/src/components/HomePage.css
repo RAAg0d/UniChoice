@@ -59,4 +59,18 @@
   .top-content {
     padding: 25px;
   }
+}
+
+@media (max-height: 600px) {
+  .home-container {
+    padding: 10px;
+  }
+  
+  .home-content {
+    max-height: calc(100vh - 80px);
+  }
+  
+  .top-content {
+    padding: 20px;
+  }
 } 

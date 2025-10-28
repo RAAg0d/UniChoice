@@ -1,5 +1,7 @@
 @import './base.css';
 
+@import './components/Header.css';
+@import './components/Footer.css';
 @import './components/HomePage.css';
 @import './components/WelcomeSection.css';
 @import './components/QuestionSection.css';
@@ -7,6 +9,17 @@
 @import './components/PopularUniversities.css';
 @import './components/FormsCommon.css';
 @import './components/ApplicationsCommonTable.css';
+@import './components/UniversityList.css';
+@import './components/UniversityDetails.css';
+@import './components/AuthModal.css';
+@import './components/AdminPanel.css';
+@import './components/AdmissionForm.css';
+@import './components/SpecialtiesSection.css';
+@import './components/MyApplications.css';
+@import './components/AdmissionApplications.css';
+@import './components/RepresentativeApplications.css';
+@import './components/UniversityApplications.css';
+@import './components/AddUniversityForm.css';
 
 @media (max-height: 600px) {
   body {

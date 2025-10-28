@@ -45,31 +45,57 @@ const AdmissionApplications = ({ user }) => {
     }
   }, [user]);
 
-  const handleStatusChange = async (applicationId, newStatus) => {
+  const handleApprove = async (applicationId) => {
     try {
-      const response = await fetch(`http://localhost:5000/admission-applications/${applicationId}/status`, {
-        method: 'PUT',
+      const response = await fetch(`http://localhost:5000/admission-applications/${applicationId}/approve`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ status: newStatus })
+        }
       });
 
       if (!response.ok) {
-        throw new Error('Ошибка при обновлении статуса');
+        throw new Error('Ошибка при одобрении заявления');
       }
 
       setApplications(applications.map(app => 
         app.application_id === applicationId 
-          ? { ...app, status: newStatus }
+          ? { ...app, status: 'approved' }
           : app
       ));
 
-      alert('Статус заявления успешно обновлен!');
+      alert('Заявление успешно одобрено!');
     } catch (error) {
       console.error('Ошибка:', error);
-      alert('Не удалось обновить статус заявления');
+      alert('Не удалось одобрить заявление');
+    }
+  };
+
+  const handleReject = async (applicationId) => {
+    try {
+      const response = await fetch(`http://localhost:5000/admission-applications/${applicationId}/reject`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Ошибка при отклонении заявления');
+      }
+
+      setApplications(applications.map(app => 
+        app.application_id === applicationId 
+          ? { ...app, status: 'rejected' }
+          : app
+      ));
+
+      alert('Заявление успешно отклонено!');
+    } catch (error) {
+      console.error('Ошибка:', error);
+      alert('Не удалось отклонить заявление');
     }
   };
 
@@ -102,7 +128,7 @@ const AdmissionApplications = ({ user }) => {
   return (
     <div className="applications-container">
       <div className="applications-content">
-        <h2>Заявления абитуриентов</h2>
+        <h2>Заявления на добавление вузов</h2>
         
         {applications.length === 0 ? (
           <Alert variant="info">
@@ -148,14 +174,14 @@ const AdmissionApplications = ({ user }) => {
                         <Button 
                           variant="success" 
                           size="sm"
-                          onClick={() => handleStatusChange(app.application_id, 'approved')}
+                          onClick={() => handleApprove(app.application_id)}
                         >
                           Одобрить
                         </Button>
                         <Button 
                           variant="danger" 
                           size="sm"
-                          onClick={() => handleStatusChange(app.application_id, 'rejected')}
+                          onClick={() => handleReject(app.application_id)}
                         >
                           Отклонить
                         </Button>

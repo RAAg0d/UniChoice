@@ -104,6 +104,13 @@ const AdminPanel = ({ user }) => {
   return (
     <div className="admin-panel">
       <h1>Панель администратора</h1>
+      
+      <div style={{ marginBottom: '30px' }}>
+        <Button variant="primary" onClick={() => navigate('/admin/applications')}>
+          Просмотр заявок на добавление вузов
+        </Button>
+      </div>
+      
       <h2>Список пользователей</h2>
       
       {error && <div className="alert alert-danger">{error}</div>}

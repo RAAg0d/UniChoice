@@ -1,40 +1,25 @@
 // Главный компонент приложения UniChoice
-import React, { useState, useEffect, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 
 // Импорт компонентов
 import Header from './components/Header';
-import AuthModal from './components/AuthModal';
-import BottomSection from './components/BottomSection';
-import QuestionSection from './components/QuestionSection';
 import Footer from './components/Footer';
+import AuthModal from './components/AuthModal';
 import AdminPanel from './components/AdminPanel';
 import UniversityApplications from './components/UniversityApplications';
 import AddUniversityForm from './components/AddUniversityForm';
 import RepresentativeApplications from './components/RepresentativeApplications';
 import AdmissionApplications from './components/AdmissionApplications';
 import MyApplications from './components/MyApplications';
-import WelcomeSection from './components/WelcomeSection';
-
-// Ленивая загрузка тяжелых компонентов для оптимизации
-const UniversityList = React.lazy(() => import('./components/UniversityList'));
-const UniversityDetails = React.lazy(() => import('./components/UniversityDetails'));
-
-// Компонент загрузки для ленивых компонентов
-const LoadingSpinner = () => (
-  <div className="loading-spinner">
-    <div className="spinner-border text-primary" role="status">
-      <span className="visually-hidden">Загрузка...</span>
-    </div>
-  </div>
-);
+import HomePage from './pages/HomePage';
+import UniversitiesPage from './pages/UniversitiesPage';
+import UniversityDetailsPage from './pages/UniversityDetailsPage';
 
 // Основной контент приложения с роутингом
 const AppContent = () => {
-  const navigate = useNavigate();
-  
   // Состояние пользователя и модальных окон
   const [user, setUser] = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -74,7 +59,7 @@ const AppContent = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
-    navigate('/');
+    window.location.href = '/';
   };
 
   const handleAuth = async (isRepresentative = false) => {
@@ -160,26 +145,15 @@ const AppContent = () => {
         />
       )}
 
-      <Suspense fallback={<LoadingSpinner />}>
-        <Routes>
-          <Route path="/" element={
-            <div className="home-container">
-              <div className="home-content">
-                <div className="top-content">
-                  <WelcomeSection />
-                  <QuestionSection />
-                </div>
-                <BottomSection />
-              </div>
-            </div>
-          } />
-          <Route path="/universities" element={<UniversityList />} />
-          <Route path="/universities/:id" element={<UniversityDetails user={user} />} />
-          <Route path="/admin" element={
-            <div className="page-container">
-              <AdminPanel user={user} />
-            </div>
-          } />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/universities" element={<UniversitiesPage />} />
+        <Route path="/universities/:id" element={<UniversityDetailsPage user={user} />} />
+        <Route path="/admin" element={
+          <div className="page-container">
+            <AdminPanel user={user} />
+          </div>
+        } />
           <Route path="/admin/applications" element={
             <div className="page-container">
               <UniversityApplications user={user} />
@@ -201,7 +175,6 @@ const AppContent = () => {
             </div>
           } />
         </Routes>
-      </Suspense>
       <Footer />
     </div>
   );

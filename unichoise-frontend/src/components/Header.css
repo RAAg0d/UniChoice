@@ -10,45 +10,78 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.header h2 {
+.header-container {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-left {
+  flex: 1;
+}
+
+.header-center {
+  flex: 2;
+  display: flex;
+  justify-content: center;
+}
+
+.header-right {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.header-logo {
   margin: 0;
   font-size: 24px;
   cursor: pointer;
   transition: opacity 0.3s ease;
 }
 
-.header h2:hover {
+.header-logo:hover {
   opacity: 0.9;
 }
 
-.user-info {
+.header-nav {
   display: flex;
-  align-items: center;
-  gap: 15px;
+  gap: 20px;
 }
 
-.user-info span {
-  font-size: 16px;
-  font-weight: 500;
+.nav-link {
+  color: white;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  font-size: 14px;
 }
 
-.user-info button {
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  text-decoration: none;
+}
+
+.nav-button {
+  background-color: #5a0b9d;
+  color: white;
   padding: 8px 16px;
   border: none;
   border-radius: 4px;
-  background-color: #5a0b9d;
-  color: white;
   cursor: pointer;
   font-size: 14px;
   transition: all 0.3s ease;
+  margin-right: 10px;
 }
 
-.user-info button:hover {
+.nav-button:hover {
   background-color: #4a098d;
   transform: translateY(-1px);
 }
 
-.logout-btn {
+.logout-button {
   background-color: #dc3545;
   color: white;
   padding: 8px 16px;
@@ -58,24 +91,11 @@
   transition: background-color 0.3s;
 }
 
-.logout-btn:hover {
+.logout-button:hover {
   background-color: #c82333;
 }
 
-.user-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-  object-fit: cover;
-}
-
-.user-icon:hover {
-  transform: scale(1.1);
-}
-
-.login-btn {
+.login-button {
   background-color: #5a0b9d;
   color: white;
   padding: 8px 16px;
@@ -86,7 +106,33 @@
   transition: all 0.3s ease;
 }
 
-.login-btn:hover {
+.login-button:hover {
   background-color: #4a098d;
   transform: translateY(-1px);
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-name {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.auth-buttons {
+  display: flex;
+  align-items: center;
+}
+
+a {
+  text-decoration: none;
+  color: white;
+}
+
+a:hover {
+  text-decoration: none;
+  color: white;
 }

@@ -18,9 +18,10 @@ const FRONTEND_ORIGIN = env.FRONTEND_ORIGIN;
 
 // CORS policy — allow frontend dev server
 app.use(cors({
-  origin: FRONTEND_ORIGIN,
+  origin: ['http://localhost:3000', 'http://localhost:3001'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
 }));
 
 app.use(bodyParser.json());
@@ -596,23 +597,34 @@ app.post('/admission-applications', authenticateToken, async (req, res) => {
     // Нормализация номера телефона: принимаем 8XXXXXXXXXX / 7XXXXXXXXXX / XXXXXXXXXX → +7(XXX)XXXXXXX
     const digits = String(phoneNumber).replace(/\D/g, '');
     let normalizedPhone = null;
+    
+    console.log('Исходные цифры:', digits, 'Длина:', digits.length);
+    
     if (digits.length === 11 && digits.startsWith('8')) {
       // 8XXXXXXXXXX -> +7(XXX)XXXXXXX
-      const d = '7' + digits.slice(1);
-      normalizedPhone = `+7(${d.slice(1,4)})${d.slice(4,11)}`;
+      const code = digits.slice(1, 4); // XXX
+      const number = digits.slice(4); // XXXXXXX
+      normalizedPhone = `+7(${code})${number}`;
     } else if (digits.length === 11 && digits.startsWith('7')) {
-      const d = digits;
-      normalizedPhone = `+7(${d.slice(1,4)})${d.slice(4,11)}`;
+      const code = digits.slice(1, 4); // XXX
+      const number = digits.slice(4); // XXXXXXX
+      normalizedPhone = `+7(${code})${number}`;
     } else if (digits.length === 10) {
-      const d = '7' + digits;
-      normalizedPhone = `+7(${d.slice(1,4)})${d.slice(4,11)}`;
+      const code = digits.slice(0, 3); // XXX
+      const number = digits.slice(3); // XXXXXXX
+      normalizedPhone = `+7(${code})${number}`;
     }
+    
+    console.log('Нормализованный номер:', normalizedPhone);
 
     // Проверка после нормализации (+7(XXX)XXXXXXX)
     const phoneRegex = /^\+7\(\d{3}\)\d{7}$/;
     if (!normalizedPhone || !phoneRegex.test(normalizedPhone)) {
+      console.log('Неправильный формат номера:', normalizedPhone);
       return res.status(400).json({ message: 'Номер телефона должен быть в формате +7(999)9999999' });
     }
+    
+    console.log('Валидация пройдена, номер:', normalizedPhone);
 
     // Валидация общего балла (1-999)
     const parsedTotalScore = parseInt(totalScore);
@@ -652,6 +664,14 @@ app.post('/admission-applications', authenticateToken, async (req, res) => {
       return res.status(400).json({ message: 'Вы уже подали заявление на эту специальность' });
     }
 
+    console.log('Параметры для INSERT:', {
+      userId,
+      parsedSpecialtyId,
+      normalizedPhone,
+      parsedTotalScore,
+      wantsBudget
+    });
+
     const result = await pool.query(
       `INSERT INTO admission_applications 
        (user_id, specialty_id, phone_number, total_score, wants_budget, status) 
@@ -663,7 +683,14 @@ app.post('/admission-applications', authenticateToken, async (req, res) => {
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Ошибка при создании заявления:', error);
-    res.status(500).json({ message: 'Ошибка сервера при создании заявления' });
+    console.error('Детали ошибки:', error.code, error.detail, error.message);
+    console.error('Stack trace:', error.stack);
+    res.status(500).json({ 
+      message: 'Ошибка сервера при создании заявления',
+      error: error.message,
+      code: error.code,
+      detail: error.detail
+    });
   }
 });
 
@@ -990,6 +1017,15 @@ app.use('*', (req, res) => {
     message: 'Маршрут не найден',
     path: req.originalUrl 
   });
+});
+
+// Проверка ограничения phone_number в БД при старте
+pool.query(`
+  SELECT constraint_name, check_clause 
+  FROM information_schema.check_constraints 
+  WHERE constraint_name = 'chk_phone_number_format'
+`).then(result => {
+  console.log('Ограничение phone_number в БД:', result.rows);
 });
 
 app.listen(PORT, () => {
