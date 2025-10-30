@@ -152,8 +152,8 @@ const UniversityList = () => {
                   </div>
                   
                   <div className="metric-card">
-                    <div className="metric-label">📅 За 30 дней</div>
-                    <div className="metric-value">{university.applications_last_30_days ?? 0}</div>
+                    <div className="metric-label">⏱️ Частота заявлений (дней)</div>
+                    <div className="metric-value">{university.application_frequency !== undefined && university.application_frequency !== null ? university.application_frequency.toFixed(2) : '—'}</div>
                   </div>
                   
                   <div className="metric-card">

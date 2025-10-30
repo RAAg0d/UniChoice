@@ -68,7 +68,7 @@ const UniversityDetails = ({ user }) => {
               </p>
             )}
             <p><strong>Заявлений всего:</strong> {university.total_applications ?? 0}</p>
-            <p><strong>За последние 30 дней:</strong> {university.applications_last_30_days ?? 0}</p>
+            <p><strong>Частота подачи заявлений (дней):</strong> {university.application_frequency !== undefined && university.application_frequency !== null ? university.application_frequency.toFixed(2) : '—'}</p>
             <p><strong>Последнее заявление:</strong> {
               university.days_since_last_application === null || university.days_since_last_application === undefined
                 ? 'нет данных'

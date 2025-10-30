@@ -37,12 +37,19 @@ class UniversityService {
                  JOIN specialties s ON s.specialty_id = aa.specialty_id
                  WHERE s.universities_id = u.universities_id
                ), 0) AS total_applications,
+               /*
+                * === ВЫЧИСЛЕНИЕ ЧАСТОТЫ ПОДАЧИ ЗАЯВЛЕНИЙ ===
+                */
                COALESCE((
-                 SELECT COUNT(*) FROM admission_applications aa
+                 SELECT CASE
+                   WHEN COUNT(aa.created_at) > 1 THEN
+                     (MAX(aa.created_at)::date - MIN(aa.created_at)::date) / (COUNT(aa.created_at) - 1)::float
+                   ELSE NULL
+                 END
+                 FROM admission_applications aa
                  JOIN specialties s ON s.specialty_id = aa.specialty_id
                  WHERE s.universities_id = u.universities_id
-                   AND aa.created_at >= NOW() - INTERVAL '30 days'
-               ), 0) AS applications_last_30_days,
+               ), 0) AS application_frequency,
                (
                  SELECT CASE WHEN MAX(aa.created_at) IS NULL THEN NULL 
                              ELSE EXTRACT(DAY FROM (NOW() - MAX(aa.created_at)))::int END
@@ -186,11 +193,15 @@ class UniversityService {
              WHERE s.universities_id = u.universities_id
            ), 0) AS total_applications,
            COALESCE((
-             SELECT COUNT(*) FROM admission_applications aa
+             SELECT CASE
+               WHEN COUNT(aa.created_at) > 1 THEN
+                 (MAX(aa.created_at)::date - MIN(aa.created_at)::date) / (COUNT(aa.created_at) - 1)::float
+               ELSE NULL
+             END
+             FROM admission_applications aa
              JOIN specialties s ON s.specialty_id = aa.specialty_id
              WHERE s.universities_id = u.universities_id
-               AND aa.created_at >= NOW() - INTERVAL '30 days'
-           ), 0) AS applications_last_30_days,
+           ), 0) AS application_frequency,
            (
              SELECT 
                CASE WHEN MAX(aa.created_at) IS NULL 
@@ -229,11 +240,9 @@ class UniversityService {
       return { additive_criterion: 0 };
     }
 
-    const weights = CONSTANTS.ADDITIVE_WEIGHTS;
-
-    // Находим мин/макс для нормализации
+    // Массивы для нормализации
     const totalApps = allStats.map(s => s.total_applications || 0).filter(v => !isNaN(v));
-    const apps30Days = allStats.map(s => s.applications_last_30_days || 0).filter(v => !isNaN(v));
+    const appFreqs = allStats.map(s => s.application_frequency || 0).filter(v => !isNaN(v));
     const daysSince = allStats.map(s => s.days_since_last_application || 0).filter(v => v !== null && !isNaN(v));
 
     const ranges = {
@@ -242,9 +251,9 @@ class UniversityService {
         min: totalApps.length > 0 ? Math.min(...totalApps) : 0,
         max: totalApps.length > 0 ? Math.max(...totalApps) : 1
       },
-      applications_last_30_days: {
-        min: apps30Days.length > 0 ? Math.min(...apps30Days) : 0,
-        max: apps30Days.length > 0 ? Math.max(...apps30Days) : 1
+      application_frequency: {
+        min: appFreqs.length > 0 ? Math.min(...appFreqs) : 0,
+        max: appFreqs.length > 0 ? Math.max(...appFreqs) : 1
       },
       days_since_last_application: {
         min: daysSince.length > 0 ? Math.min(...daysSince) : 0,
@@ -252,29 +261,47 @@ class UniversityService {
       }
     };
 
-    // Проверяем, что max > min для всех диапазонов
+    // Проверяем, что max > min для всех диапазонов (особенно для application_frequency)
     Object.keys(ranges).forEach(key => {
       if (ranges[key].max === ranges[key].min) {
-        ranges[key].max = ranges[key].min + 1;
+        if (key === 'application_frequency') {
+          // Безопасный диапазон, если только один вуз или одинаковая частота
+          ranges[key].min = 0;
+          ranges[key].max = ranges[key].max === 0 ? 1 : ranges[key].max * 2;
+        } else {
+          ranges[key].max = ranges[key].min + 1;
+        }
       }
     });
 
-    // Нормализуем значения
+    // Нормализация значений
     const normalized = {
       average_rating: stats.average_rating ? normalizeValue(stats.average_rating, ranges.average_rating.min, ranges.average_rating.max) : 0,
       total_applications: stats.total_applications ? normalizeValue(stats.total_applications, ranges.total_applications.min, ranges.total_applications.max) : 0,
-      applications_last_30_days: stats.applications_last_30_days ? normalizeValue(stats.applications_last_30_days, ranges.applications_last_30_days.min, ranges.applications_last_30_days.max) : 0,
+      application_frequency: stats.application_frequency !== null && !isNaN(stats.application_frequency)
+        ? normalizeValue(stats.application_frequency, ranges.application_frequency.min, ranges.application_frequency.max)
+        : 0.5,
       days_since_last_application: stats.days_since_last_application !== null && !isNaN(stats.days_since_last_application) ? normalizeValue(stats.days_since_last_application, ranges.days_since_last_application.min, ranges.days_since_last_application.max) : 0.5
     };
-
-    // Для дней с последнего заявления инвертируем (меньше дней = лучше)
+    // инверсия, чтобы меньшая частота (лучше) давала больший вклад
+    const invertedFreq = 1 - normalized.application_frequency;
     const invertedDaysSince = 1 - normalized.days_since_last_application;
 
-    // Вычисляем аддитивный критерий: R = Σ(w_i * f_i)
+    // DEBUG: логируем детали нормализации/инверсии
+    console.log('DEBUG: Additive', {
+      application_frequency: stats.application_frequency,
+      normFreq: normalized.application_frequency,
+      invertedFreq,
+      normDays: normalized.days_since_last_application,
+      invertedDaysSince,
+      rangeFreq: ranges.application_frequency
+    });
+
+    const weights = CONSTANTS.ADDITIVE_WEIGHTS;
     const additiveCriterion = 
       normalized.average_rating * weights.AVERAGE_RATING +
       normalized.total_applications * weights.TOTAL_APPLICATIONS +
-      normalized.applications_last_30_days * weights.APPLICATIONS_LAST_30_DAYS +
+      invertedFreq * weights.APPLICATION_FREQUENCY +
       invertedDaysSince * weights.DAYS_SINCE_LAST_APPLICATION;
 
     return {
