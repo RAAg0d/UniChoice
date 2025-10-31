@@ -332,8 +332,14 @@ app.post('/universities/:id/reviews', async (req, res) => {
 
     res.status(201).json(newReview.rows[0]);
   } catch (error) {
-    console.error('Ошибка при добавлении отзыва:', error);
-    res.status(500).json({ message: error.message });
+    console.error('Ошибка при добавлении отзыва:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      constraint: error.constraint,
+      stack: error.stack
+    });
+    res.status(500).json({ message: 'Ошибка сервера при добавлении отзыва', code: error.code, detail: error.detail, constraint: error.constraint });
   }
 });
 

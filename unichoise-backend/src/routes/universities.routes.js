@@ -167,9 +167,15 @@ router.post('/:id/reviews', async (req, res) => {
 
     res.status(CONSTANTS.HTTP_STATUS.CREATED).json(newReview.rows[0]);
   } catch (error) {
-    console.error('Ошибка при добавлении отзыва:', error);
+    console.error('Ошибка при добавлении отзыва:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      constraint: error.constraint,
+      stack: error.stack
+    });
     res.status(CONSTANTS.HTTP_STATUS.INTERNAL_SERVER_ERROR)
-       .json({ message: error.message });
+       .json({ message: 'Ошибка сервера при добавлении отзыва', code: error.code, detail: error.detail, constraint: error.constraint });
   }
 });
 

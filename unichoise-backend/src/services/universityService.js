@@ -287,7 +287,7 @@ class UniversityService {
     const invertedFreq = 1 - normalized.application_frequency;
     const invertedDaysSince = 1 - normalized.days_since_last_application;
 
-    // DEBUG: логируем детали нормализации/инверсии
+    // логируем детали нормализации
     console.log('DEBUG: Additive', {
       application_frequency: stats.application_frequency,
       normFreq: normalized.application_frequency,
